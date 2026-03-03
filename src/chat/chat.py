@@ -1,5 +1,6 @@
-from langchain.chains import RetrievalQA
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
 import sys, os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -21,16 +22,22 @@ Question:
 Answer:
 """
 
+def format_docs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+
 def build_chain():
     prompt = PromptTemplate(
         template=PROMPT_TEMPLATE,
         input_variables=["context", "question"]
     )
-    chain = RetrievalQA.from_chain_type(
-        llm=load_llm(),
-        retriever=load_retriever(),
-        chain_type="stuff",
-        chain_type_kwargs={"prompt": prompt}
+    retriever = load_retriever()
+    llm = load_llm()
+
+    chain = (
+        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        | prompt
+        | llm
+        | StrOutputParser()
     )
     return chain
 
@@ -43,8 +50,8 @@ def chat():
             break
         if not question:
             continue
-        answer = chain.invoke({"query": question})
-        print(f"\nAssistant: {answer['result']}\n")
+        answer = chain.invoke(question)
+        print(f"\nAssistant: {answer}\n")
 
 if __name__ == "__main__":
     chat()
