@@ -6,7 +6,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 
 from src.config import VECTOR_STORE_DIR, EMBEDDING_MODEL
 
-def load_retriever(k=3):
+def load_retriever(k=5):
     embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL)
     vector_store = FAISS.load_local(
         str(VECTOR_STORE_DIR),
