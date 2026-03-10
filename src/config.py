@@ -9,9 +9,9 @@ PROCESSED_DIR    = BASE_DIR / "data" / "processed"
 VECTOR_STORE_DIR = BASE_DIR / "vector_store"
 
 # ── Ollama model settings ───────────────────────────────────────────────────
-LLM_MODEL       = "qwen2.5:7b"
+LLM_MODEL       = "llama3.1:8b"
 EMBEDDING_MODEL = "nomic-embed-text"
 
 # ── Text splitting settings ─────────────────────────────────────────────────
-CHUNK_SIZE    = 500
-CHUNK_OVERLAP = 50
+CHUNK_SIZE    = 1200
+CHUNK_OVERLAP = 100
