@@ -15,15 +15,18 @@ from src.ingest.translator import is_greek, translate_to_english
 def load_documents():
     documents = []
 
-    pdf_loader = PyPDFDirectoryLoader(str(RAW_PDFS_DIR))
+    # Load PDFs recursively
+    pdf_loader = PyPDFDirectoryLoader(str(RAW_PDFS_DIR), recursive=True)
     pdf_docs = pdf_loader.load()
     print(f"  PDFs: {len(pdf_docs)} pages loaded.")
     documents.extend(pdf_docs)
 
+    # Load DOCX recursively
     docx_loader = DirectoryLoader(
         str(RAW_PDFS_DIR),
         glob="**/*.docx",
-        loader_cls=Docx2txtLoader
+        loader_cls=Docx2txtLoader,
+        recursive=True
     )
     docx_docs = docx_loader.load()
     print(f"  DOCX: {len(docx_docs)} documents loaded.")
@@ -37,7 +40,7 @@ def build_index():
     documents = load_documents()
 
     if not documents:
-        print("No documents found. Add PDFs or DOCX files to data/raw_pdfs/ and try again.")
+        print("No documents found.")
         return
 
     print(f"Total: {len(documents)} documents loaded.")
@@ -50,31 +53,9 @@ def build_index():
     chunks = splitter.split_documents(documents)
     print(f"Created {len(chunks)} chunks.")
 
-    # Translate Greek chunks and build bilingual index
-    print("Building bilingual index...")
-    all_chunks = []
-
-    for i, chunk in enumerate(chunks):
-        # Always keep original chunk
-        all_chunks.append(chunk)
-
-        # If Greek, translate and add English version alongside
-        if is_greek(chunk.page_content):
-            print(f"  Translating chunk {i+1}/{len(chunks)}...")
-            translated = translate_to_english(chunk.page_content)
-            if translated:
-                all_chunks.append(Document(
-                    page_content=translated,
-                    metadata={**chunk.metadata, "language": "en", "translated": True}
-                ))
-
-    greek_count = sum(1 for c in all_chunks if c.metadata.get("translated"))
-    print(f"  Translated {greek_count} Greek chunks to English.")
-    print(f"  Total chunks in index: {len(all_chunks)}")
-
-    print("Generating embeddings — this may take a few minutes...")
+    print("Generating embeddings...")
     embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL)
-    vector_store = FAISS.from_documents(all_chunks, embeddings)
+    vector_store = FAISS.from_documents(chunks, embeddings)
 
     print("Saving vector store...")
     vector_store.save_local(str(VECTOR_STORE_DIR))
