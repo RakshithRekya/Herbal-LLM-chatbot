@@ -44,16 +44,20 @@ def build_chain():
     llm = load_llm()
 
     def pipeline(question):
-        if not is_greek(question):
-            language = "English"
-            greek_question = translate_to_greek(question)
-        else:
+        # Detect original language
+        if is_greek(question):
             language = "Greek"
-            greek_question = question
+            # Translate Greek question to English for retrieval
+            english_question = GoogleTranslator(source='el', target='en').translate(question)
+        else:
+            language = "English"
+            english_question = question
 
-        docs = retriever.invoke(greek_question)
+        # Search English index with English query
+        docs = retriever.invoke(english_question)
         context = format_docs(docs)
 
+        # Answer in original language
         return (prompt | llm | StrOutputParser()).invoke({
             "context": context,
             "question": question,
