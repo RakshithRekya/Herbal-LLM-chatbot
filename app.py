@@ -12,6 +12,56 @@ st.set_page_config(
     layout="centered"
 )
 
+# ── Sidebar with settings ──────────────────────────────────────────────────
+with st.sidebar:
+    st.title("⚙️ Settings")
+    
+    # Language preference
+    st.subheader("Language")
+    lang_preference = st.radio(
+        "Preferred language:",
+        ["Auto-detect", "Greek", "English"],
+        help="Auto-detect will respond in the language you ask"
+    )
+    
+    st.divider()
+    
+    # Sample queries
+    st.subheader("📝 Sample Queries")
+    
+    with st.expander("🇬🇷 Greek Examples"):
+        st.markdown("""
+        - Τι βότανα βοηθούν στον ύπνο;
+        - Πώς χρησιμοποιώ το χαμομήλι;
+        - Ποιες είναι οι ιδιότητες της μέντας;
+        - Τι βότανα βοηθούν με το άγχος;
+        - Λεβάντα ιδιότητες
+        """)
+    
+    with st.expander("🇬🇧 English Examples"):
+        st.markdown("""
+        - What herbs help with anxiety?
+        - Which herbs are good for digestion?
+        - How do I use chamomile?
+        - What are the properties of mint?
+        - Lavender uses
+        """)
+    
+    st.divider()
+    
+    # About section
+    st.subheader("ℹ️ About")
+    st.caption("""
+    This chatbot provides information about Greek herbal medicine 
+    based on 350+ documents. Always consult a healthcare professional 
+    before using herbs medicinally.
+    """)
+    
+    # Clear chat button
+    if st.button("🗑️ Clear Chat History"):
+        st.session_state.messages = []
+        st.rerun()
+
 # ── Header ─────────────────────────────────────────────────────────────────
 st.title("🌿 Herbal Assistant")
 st.caption("Ask me anything about herbal remedies, dosages, and properties.")
@@ -46,5 +96,18 @@ if question := st.chat_input("Ask about herbs..."):
         with st.spinner("Thinking..."):
             answer = chain.invoke(question)
         st.markdown(answer)
+        
+        # Add helpful feedback buttons
+        col1, col2, col3 = st.columns([1, 1, 4])
+        with col1:
+            if st.button("👍", key=f"like_{len(st.session_state.messages)}"):
+                st.success("Thanks for the feedback!")
+        with col2:
+            if st.button("👎", key=f"dislike_{len(st.session_state.messages)}"):
+                st.warning("Feedback noted. We'll improve!")
 
     st.session_state.messages.append({"role": "assistant", "content": answer})
+
+# ── Footer ─────────────────────────────────────────────────────────────────
+st.divider()
+st.caption("⚠️ This chatbot provides educational information only. Always consult a healthcare professional before using herbs medicinally.")
