@@ -10,7 +10,7 @@ VECTOR_STORE_DIR = BASE_DIR / "vector_store"
 
 # ── Ollama model settings ───────────────────────────────────────────────────
 LLM_MODEL       = "llama3.1:8b"
-EMBEDDING_MODEL = "nomic-embed-text"
+EMBEDDING_MODEL = "nomic-ai/nomic-embed-text-v1"
 
 # ── Text splitting settings ─────────────────────────────────────────────────
 CHUNK_SIZE    = 1200

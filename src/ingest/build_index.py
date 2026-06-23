@@ -1,7 +1,7 @@
 from langchain_community.document_loaders import PyPDFDirectoryLoader, DirectoryLoader
 from langchain_community.document_loaders import Docx2txtLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_ollama import OllamaEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
 from deep_translator import GoogleTranslator
@@ -160,7 +160,7 @@ def build_index(test_mode=False):
  
     print("\n🔢 Generating embeddings...")
     print(f"   Model: {EMBEDDING_MODEL}")
-    embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL)
+    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL, model_kwargs={'trust_remote_code': True})
     vector_store = FAISS.from_documents(translated_chunks, embeddings)
  
     print("\n💾 Saving vector store...")
