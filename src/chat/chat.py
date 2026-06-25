@@ -10,7 +10,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 from src.retrieval.retriever import load_retriever
 from src.llm.model import load_llm
 
-# Stronger multilingual prompt
 ANSWER_PROMPT = """
 You are a knowledgeable herbal medicine expert.
 Use ONLY the context below to answer the question.
@@ -31,15 +30,31 @@ If the context doesn't contain the answer, say in {language}: "I don't have that
 Your complete answer in {language}:
 """
 
+# Query expansion map — improves retrieval for vague or short queries
+QUERY_EXPANSIONS = {
+    'sleep':      'sleep insomnia sedative calming relaxing herbs',
+    'anxiety':    'anxiety stress nervous tension calming herbs',
+    'digestion':  'digestion stomach digestive upset herbs',
+    'pain':       'pain relief analgesic anti-inflammatory herbs',
+    'cold':       'cold flu cough respiratory infection herbs',
+    'skin':       'skin wound healing anti-inflammatory topical herbs',
+    'energy':     'energy fatigue stimulant tonic herbs',
+    'memory':     'memory concentration cognitive brain herbs',
+}
+
+def expand_query(query):
+    query_lower = query.lower()
+    for keyword, expansion in QUERY_EXPANSIONS.items():
+        if keyword in query_lower:
+            return expansion
+    return query
+
 def detect_language(text):
-    """Detect input language"""
     try:
         lang_code = detect(text)
-        
-        # Map language codes to names
         lang_map = {
             'el': 'Greek',
-            'en': 'English', 
+            'en': 'English',
             'pl': 'Polish',
             'sl': 'Slovenian',
             'es': 'Spanish',
@@ -51,14 +66,12 @@ def detect_language(text):
             'hi': 'Hindi',
             'ru': 'Russian',
         }
-        
         language_name = lang_map.get(lang_code, 'English')
         return language_name, lang_code
     except:
         return 'English', 'en'
 
 def format_docs(docs):
-    """Format retrieved documents"""
     return "\n\n".join(doc.page_content for doc in docs)
 
 def build_chain():
@@ -77,7 +90,7 @@ def build_chain():
         if lang_code != 'en':
             try:
                 english_question = GoogleTranslator(
-                    source=lang_code, 
+                    source=lang_code,
                     target='en'
                 ).translate(question)
             except Exception as e:
@@ -86,11 +99,14 @@ def build_chain():
         else:
             english_question = question
         
-        # 3. Retrieve documents using English query
-        docs = retriever.invoke(english_question)
+        # 3. Expand query to improve retrieval matches
+        retrieval_query = expand_query(english_question)
+        
+        # 4. Retrieve documents
+        docs = retriever.invoke(retrieval_query)
         context = format_docs(docs)
         
-        # 4. Generate answer in original language
+        # 5. Generate answer in original language
         answer = (prompt | llm | StrOutputParser()).invoke({
             "context": context,
             "question": question,

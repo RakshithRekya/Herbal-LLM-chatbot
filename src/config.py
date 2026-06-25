@@ -8,8 +8,7 @@ RAW_PDFS_DIR     = BASE_DIR / "data" / "raw_pdfs"
 PROCESSED_DIR    = BASE_DIR / "data" / "processed"
 VECTOR_STORE_DIR = BASE_DIR / "vector_store"
 
-# ── Ollama model settings ───────────────────────────────────────────────────
-LLM_MODEL       = "llama3.1:8b"
+# ── Embedding model (HuggingFace) ───────────────────────────────────────────
 EMBEDDING_MODEL = "nomic-ai/nomic-embed-text-v1"
 
 # ── Text splitting settings ─────────────────────────────────────────────────

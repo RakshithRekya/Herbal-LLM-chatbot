@@ -20,6 +20,8 @@ BOILERPLATE_PHRASES = [
     "γεύση προέρχεται από έλαια στα κυτταρικά τοιχώματα",
     "Consultation with a specialist is considered necessary",
     "information provided has been drawn from academic books",
+    "Combination of herbs",
+    "* Combination of herbs",
 ]
  
  
