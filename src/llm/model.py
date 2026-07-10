@@ -8,6 +8,7 @@ from langchain_openai import ChatOpenAI
 
 load_dotenv()
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 PROVIDERS = [
@@ -28,9 +29,9 @@ PROVIDERS = [
         ),
     },
     {
-        "name": "OpenRouter / llama-3.3-70b",
+        "name": "OpenRouter / free-router",
         "loader": lambda: ChatOpenAI(
-            model="meta-llama/llama-3.3-70b-instruct:free",
+            model="openrouter/free",   # ← auto-selects best available free model
             openai_api_key=os.environ["OPEN_ROUTER_KEY"],
             openai_api_base="https://openrouter.ai/api/v1",
             temperature=0.3,
@@ -63,9 +64,21 @@ def _fallback_invoke(input):
             llm = provider["loader"]()
             response = llm.invoke(input)
             logger.info(f"✅ Used: {provider['name']}")
+            print(f"✅ Provider used: {provider['name']}", flush=True)  # guaranteed visible in Render logs
+
+            # Tag the response so callers (chat.py / app.py) can access it if needed
+            try:
+                if hasattr(response, "response_metadata"):
+                    response.response_metadata["provider_used"] = provider["name"]
+                else:
+                    response.response_metadata = {"provider_used": provider["name"]}
+            except Exception:
+                pass  # non-critical if response type doesn't support metadata assignment
+
             return response
         except Exception as e:
             logger.warning(f"⚠️  {provider['name']} failed: {type(e).__name__}: {e}")
+            print(f"⚠️  {provider['name']} failed: {type(e).__name__}: {e}", flush=True)
             last_error = e
             continue
     raise RuntimeError(f"All LLM providers failed. Last error: {last_error}")
